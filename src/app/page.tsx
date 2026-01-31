@@ -239,7 +239,7 @@ export default function Home() {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           className={`
-            w-full rounded-2xl border-3 border-dashed p-8
+            w-full rounded-2xl border-3 border-dashed px-8 pt-8 pb-2
             flex flex-col items-center justify-center gap-4 transition-all cursor-pointer
             bg-cream/80 backdrop-blur-sm z-10 relative
             ${status === "done" ? "min-h-0" : "min-h-72"}

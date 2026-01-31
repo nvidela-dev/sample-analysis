@@ -322,7 +322,7 @@ export default function Home() {
 
             <button
               onClick={reset}
-              className="w-full text-xs text-forest hover:text-cream py-1.5 border border-olive rounded-lg hover:bg-olive transition-all mt-4"
+              className="w-full text-xs text-forest hover:text-cream py-1.5 border border-olive rounded-lg hover:bg-olive transition-all mt-2"
             >
               Analyze another
             </button>

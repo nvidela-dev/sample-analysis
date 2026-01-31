@@ -288,7 +288,7 @@ export function KeyRadar({ candidates, stopTrigger, useFlats = false, onToggleNo
           {/* Sharp/Flat toggle */}
           <button
             onClick={onToggleNotation}
-            className="mt-2 px-2 py-0.5 text-[10px] text-brown/60 hover:text-forest border border-brown/20 hover:border-forest rounded transition-colors"
+            className="mt-6 px-2 py-0.5 text-[10px] text-brown/60 hover:text-forest border border-brown/20 hover:border-forest rounded transition-colors"
           >
             {useFlats ? "♭ → ♯" : "♯ → ♭"}
           </button>

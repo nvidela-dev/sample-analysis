@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { analyzeAudio, AnalysisResult } from "@/lib/audio-analyzer";
 import { VinylScratcher } from "@/components/VinylScratcher";
 import { AudioPlayer } from "@/components/AudioPlayer";
@@ -105,6 +105,25 @@ export default function Home() {
   const [volume, setVolume] = useState(1);
   const [bpmOffset, setBpmOffset] = useState(0);
   const [useFlats, setUseFlats] = useState(false);
+  const [contentScale, setContentScale] = useState(1);
+  const analysisBoxRef = useRef<HTMLDivElement>(null);
+  const baseWidth = 576; // max-w-xl = 36rem = 576px
+
+  // Track resize and scale content
+  useEffect(() => {
+    if (status !== "done" || !analysisBoxRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const newWidth = entry.contentRect.width;
+        const scale = Math.max(0.5, newWidth / baseWidth);
+        setContentScale(scale);
+      }
+    });
+
+    observer.observe(analysisBoxRef.current);
+    return () => observer.disconnect();
+  }, [status]);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("audio/")) {
@@ -171,6 +190,7 @@ export default function Home() {
     setVolume(1);
     setBpmOffset(0);
     setUseFlats(false);
+    setContentScale(1);
   }, []);
 
   const handleStop = useCallback(() => {
@@ -235,14 +255,15 @@ export default function Home() {
 
         {/* Drop Zone */}
         <div
+          ref={analysisBoxRef}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           className={`
             w-full rounded-2xl border-3 border-dashed px-8 pt-8 pb-2
             flex flex-col items-center justify-center gap-4 transition-all cursor-pointer
-            bg-cream/80 backdrop-blur-sm z-10 relative overflow-auto
-            ${status === "done" ? "min-h-0 resize-y" : "min-h-72"}
+            bg-cream/80 backdrop-blur-sm z-10 relative overflow-hidden
+            ${status === "done" ? "min-h-0 resize min-w-[300px]" : "min-h-72"}
             ${isDragging
               ? "border-olive bg-olive/10 scale-[1.02]"
               : "border-tan hover:border-olive hover:bg-cream"}
@@ -289,7 +310,11 @@ export default function Home() {
         )}
 
         {status === "done" && result && (
-          <div className="w-full" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="w-full origin-top"
+            style={{ transform: `scale(${contentScale})` }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-center gap-2 mb-6">
               <BPMRadar
                 bpm={result.bpm}

@@ -5,7 +5,7 @@ import { KeyCandidate } from "@/lib/audio-analyzer";
 
 interface KeyRadarProps {
   candidates: KeyCandidate[];
-  stopTrigger?: number; // Increment to stop all tones
+  stopTrigger?: number;
 }
 
 const NOTE_FREQUENCIES: Record<string, number> = {
@@ -26,6 +26,8 @@ const NOTE_FREQUENCIES: Record<string, number> = {
 export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
   const top6 = candidates.slice(0, 6);
   const [activeNote, setActiveNote] = useState<string | null>(null);
+  const [volume, setVolume] = useState(100);
+  const [detune, setDetune] = useState(0); // cents (-50 to +50)
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorRef = useRef<{ osc: OscillatorNode; gain: GainNode } | null>(null);
 
@@ -42,7 +44,23 @@ export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
     }
   }, [stopTrigger]);
 
-  // Initialize audio context on first interaction
+  // Update detune on active oscillator
+  useEffect(() => {
+    if (oscillatorRef.current) {
+      oscillatorRef.current.osc.detune.value = detune;
+    }
+  }, [detune]);
+
+  // Update volume on active oscillator
+  useEffect(() => {
+    if (oscillatorRef.current && audioContextRef.current) {
+      oscillatorRef.current.gain.gain.setValueAtTime(
+        (volume / 100) * 0.2,
+        audioContextRef.current.currentTime
+      );
+    }
+  }, [volume]);
+
   const getAudioContext = useCallback(() => {
     if (!audioContextRef.current) {
       audioContextRef.current = new AudioContext();
@@ -53,7 +71,6 @@ export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
     return audioContextRef.current;
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (oscillatorRef.current) {
@@ -68,7 +85,6 @@ export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
   const toggleNote = useCallback((key: string, mode: "major" | "minor") => {
     const noteId = `${key}-${mode}`;
 
-    // If same note is active, stop it
     if (activeNote === noteId) {
       if (oscillatorRef.current) {
         const { gain, osc } = oscillatorRef.current;
@@ -82,7 +98,6 @@ export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
       return;
     }
 
-    // Stop any currently playing note
     if (oscillatorRef.current) {
       const { gain, osc } = oscillatorRef.current;
       gain.gain.exponentialRampToValueAtTime(0.001, audioContextRef.current!.currentTime + 0.05);
@@ -99,8 +114,9 @@ export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
 
     osc.type = "triangle";
     osc.frequency.value = baseFreq;
+    osc.detune.value = detune;
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.05);
+    gain.gain.linearRampToValueAtTime((volume / 100) * 0.2, ctx.currentTime + 0.05);
 
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -108,33 +124,38 @@ export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
 
     oscillatorRef.current = { osc, gain };
     setActiveNote(noteId);
-  }, [activeNote, getAudioContext]);
+  }, [activeNote, getAudioContext, detune, volume]);
+
+  const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setVolume(Number(e.target.value));
+  }, []);
+
+  const handleDetuneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setDetune(Number(e.target.value));
+  }, []);
 
   // Radar chart configuration
-  const size = 240;
+  const size = 180;
   const center = size / 2;
-  const maxRadius = 90;
-  const minRadius = 30;
+  const maxRadius = 65;
+  const minRadius = 22;
 
-  // Calculate points for the radar shape
   const points = top6.map((candidate, i) => {
-    const angle = (i * 2 * Math.PI) / 6 - Math.PI / 2; // Start from top
+    const angle = (i * 2 * Math.PI) / 6 - Math.PI / 2;
     const radius = minRadius + (maxRadius - minRadius) * candidate.confidence;
     return {
       x: center + radius * Math.cos(angle),
       y: center + radius * Math.sin(angle),
-      labelX: center + (maxRadius + 28) * Math.cos(angle),
-      labelY: center + (maxRadius + 28) * Math.sin(angle),
+      labelX: center + (maxRadius + 22) * Math.cos(angle),
+      labelY: center + (maxRadius + 22) * Math.sin(angle),
       candidate,
       angle,
     };
   });
 
-  // Create the polygon path
   const polygonPoints = points.map(p => `${p.x},${p.y}`).join(" ");
 
-  // Grid lines (concentric hexagons)
-  const gridLevels = [0.25, 0.5, 0.75, 1];
+  const gridLevels = [0.33, 0.66, 1];
   const createHexagonPath = (radius: number) => {
     const hexPoints = [];
     for (let i = 0; i < 6; i++) {
@@ -146,132 +167,146 @@ export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
 
   return (
     <div className="flex flex-col items-center">
-      <svg width={size} height={size} className="overflow-visible">
-        {/* Background grid hexagons */}
-        {gridLevels.map((level, i) => (
+      <div className="text-xs text-brown/50 text-center mb-2">
+        Click a key to hear its tone
+      </div>
+
+      <div className="flex items-center gap-2">
+        {/* Radar */}
+        <svg width={size} height={size} className="overflow-visible">
+          {gridLevels.map((level, i) => (
+            <polygon
+              key={i}
+              points={createHexagonPath(minRadius + (maxRadius - minRadius) * level)}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1"
+              className="text-brown/15"
+            />
+          ))}
+
+          {points.map((p, i) => (
+            <line
+              key={i}
+              x1={center}
+              y1={center}
+              x2={center + maxRadius * Math.cos(p.angle)}
+              y2={center + maxRadius * Math.sin(p.angle)}
+              stroke="currentColor"
+              strokeWidth="1"
+              className="text-brown/15"
+            />
+          ))}
+
           <polygon
-            key={i}
-            points={createHexagonPath(minRadius + (maxRadius - minRadius) * level)}
-            fill="none"
+            points={polygonPoints}
+            fill="url(#radarGradient)"
             stroke="currentColor"
-            strokeWidth="1"
-            className="text-brown/15"
+            strokeWidth="2"
+            className="text-forest"
           />
-        ))}
 
-        {/* Axis lines */}
-        {points.map((p, i) => (
-          <line
-            key={i}
-            x1={center}
-            y1={center}
-            x2={center + maxRadius * Math.cos(p.angle)}
-            y2={center + maxRadius * Math.sin(p.angle)}
-            stroke="currentColor"
-            strokeWidth="1"
-            className="text-brown/15"
-          />
-        ))}
+          <defs>
+            <linearGradient id="radarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#606C38" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#283618" stopOpacity="0.6" />
+            </linearGradient>
+          </defs>
 
-        {/* Filled radar shape */}
-        <polygon
-          points={polygonPoints}
-          fill="url(#radarGradient)"
-          stroke="currentColor"
-          strokeWidth="2"
-          className="text-forest"
-        />
+          {points.map((p, i) => {
+            const noteId = `${p.candidate.key}-${p.candidate.mode}`;
+            const isActive = activeNote === noteId;
 
-        {/* Gradient definition */}
-        <defs>
-          <linearGradient id="radarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#606C38" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#283618" stopOpacity="0.6" />
-          </linearGradient>
-        </defs>
-
-        {/* Data points (clickable) */}
-        {points.map((p, i) => {
-          const noteId = `${p.candidate.key}-${p.candidate.mode}`;
-          const isActive = activeNote === noteId;
-
-          return (
-            <g key={i} className="cursor-pointer" onClick={() => toggleNote(p.candidate.key, p.candidate.mode)}>
-              {/* Larger hit area */}
-              <circle
-                cx={p.x}
-                cy={p.y}
-                r={16}
-                fill="transparent"
-              />
-              {/* Visible point */}
-              <circle
-                cx={p.x}
-                cy={p.y}
-                r={isActive ? 8 : 6}
-                fill={isActive ? "#DDA15E" : "#606C38"}
-                stroke={isActive ? "#BC6C25" : "#283618"}
-                strokeWidth="2"
-                className="transition-all duration-150"
-              />
-              {/* Pulse animation when active */}
-              {isActive && (
+            return (
+              <g key={i} className="cursor-pointer" onClick={() => toggleNote(p.candidate.key, p.candidate.mode)}>
+                <circle cx={p.x} cy={p.y} r={14} fill="transparent" />
                 <circle
                   cx={p.x}
                   cy={p.y}
-                  r={12}
-                  fill="none"
-                  stroke="#DDA15E"
+                  r={isActive ? 6 : 4}
+                  fill={isActive ? "#DDA15E" : "#606C38"}
+                  stroke={isActive ? "#BC6C25" : "#283618"}
                   strokeWidth="2"
-                  className="animate-ping opacity-75"
+                  className="transition-all duration-150"
                 />
-              )}
-            </g>
-          );
-        })}
+                {isActive && (
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r={10}
+                    fill="none"
+                    stroke="#DDA15E"
+                    strokeWidth="2"
+                    className="animate-ping opacity-75"
+                  />
+                )}
+              </g>
+            );
+          })}
 
-        {/* Labels */}
-        {points.map((p, i) => {
-          const noteId = `${p.candidate.key}-${p.candidate.mode}`;
-          const isActive = activeNote === noteId;
-          const isTop = i === 0;
+          {points.map((p, i) => {
+            const noteId = `${p.candidate.key}-${p.candidate.mode}`;
+            const isActive = activeNote === noteId;
+            const isTop = i === 0;
 
-          return (
-            <g
-              key={`label-${i}`}
-              className="cursor-pointer"
-              onClick={() => toggleNote(p.candidate.key, p.candidate.mode)}
-            >
-              <text
-                x={p.labelX}
-                y={p.labelY}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                className={`text-sm font-medium transition-colors ${
-                  isActive ? "fill-orange" : isTop ? "fill-forest" : "fill-brown/70"
-                }`}
-              >
-                {p.candidate.key}
-              </text>
-              <text
-                x={p.labelX}
-                y={p.labelY + 14}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                className={`text-[10px] transition-colors ${
-                  isActive ? "fill-orange/80" : "fill-brown/50"
-                }`}
-              >
-                {p.candidate.mode}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
+            return (
+              <g key={`label-${i}`} className="cursor-pointer" onClick={() => toggleNote(p.candidate.key, p.candidate.mode)}>
+                <text
+                  x={p.labelX}
+                  y={p.labelY}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className={`text-xs font-medium transition-colors ${
+                    isActive ? "fill-orange" : isTop ? "fill-forest" : "fill-brown/70"
+                  }`}
+                >
+                  {p.candidate.key}
+                </text>
+                <text
+                  x={p.labelX}
+                  y={p.labelY + 12}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className={`text-[9px] transition-colors ${
+                    isActive ? "fill-orange/80" : "fill-brown/50"
+                  }`}
+                >
+                  {p.candidate.mode}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
 
-      {/* Legend */}
-      <div className="mt-2 text-xs text-brown/50 text-center">
-        Click a key to hear its tone
+        {/* Volume slider (inner right) */}
+        <div className="flex flex-col items-center h-[180px]">
+          <span className="text-[10px] text-brown/50 mb-1">Vol</span>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={volume}
+            onChange={handleVolumeChange}
+            className="slider-vertical h-[140px] w-2 accent-olive cursor-pointer"
+            style={{ writingMode: "vertical-lr", direction: "rtl" }}
+          />
+          <span className="text-[10px] text-brown/50 mt-1">{volume}%</span>
+        </div>
+
+        {/* Detune slider (outer right) */}
+        <div className="flex flex-col items-center h-[180px]">
+          <span className="text-[10px] text-forest/60 mb-1">Pitch</span>
+          <input
+            type="range"
+            min="-50"
+            max="50"
+            value={detune}
+            onChange={handleDetuneChange}
+            className="slider-vertical h-[140px] w-2 accent-forest cursor-pointer"
+            style={{ writingMode: "vertical-lr", direction: "rtl" }}
+          />
+          <span className="text-[10px] text-forest/80 mt-1">{detune > 0 ? `+${detune}` : detune}¢</span>
+        </div>
       </div>
     </div>
   );

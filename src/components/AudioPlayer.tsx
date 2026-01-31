@@ -5,12 +5,13 @@ import { useRef, useState, useCallback, useEffect } from "react";
 interface AudioPlayerProps {
   file: File;
   bpm: number;
+  volume?: number; // 0 to 1
   onPlayingChange?: (isPlaying: boolean) => void;
   onStop?: () => void;
   restartTrigger?: number; // Increment to restart with metronome
 }
 
-export function AudioPlayer({ file, bpm, onPlayingChange, onStop, restartTrigger }: AudioPlayerProps) {
+export function AudioPlayer({ file, bpm, volume = 1, onPlayingChange, onStop, restartTrigger }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [metronomeOn, setMetronomeOn] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -28,6 +29,13 @@ export function AudioPlayer({ file, bpm, onPlayingChange, onStop, restartTrigger
   useEffect(() => {
     onPlayingChange?.(isPlaying);
   }, [isPlaying, onPlayingChange]);
+
+  // Update volume when it changes
+  useEffect(() => {
+    if (gainRef.current && audioContextRef.current) {
+      gainRef.current.gain.setValueAtTime(volume, audioContextRef.current.currentTime);
+    }
+  }, [volume]);
 
   // Initialize audio context and decode file
   useEffect(() => {

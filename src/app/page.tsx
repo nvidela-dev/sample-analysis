@@ -102,6 +102,8 @@ export default function Home() {
   const [selectedBPM, setSelectedBPM] = useState<number | null>(null);
   const [restartTrigger, setRestartTrigger] = useState(0);
   const [stopTrigger, setStopTrigger] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [bpmOffset, setBpmOffset] = useState(0);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("audio/")) {
@@ -165,6 +167,8 @@ export default function Home() {
     setSelectedBPM(null);
     setRestartTrigger(0);
     setStopTrigger(0);
+    setVolume(1);
+    setBpmOffset(0);
   }, []);
 
   const handleStop = useCallback(() => {
@@ -173,6 +177,19 @@ export default function Home() {
 
   const handleBPMSelect = useCallback((bpm: number) => {
     setSelectedBPM(bpm);
+    setRestartTrigger(prev => prev + 1);
+  }, []);
+
+  const handleVolumeChange = useCallback((vol: number) => {
+    setVolume(vol);
+  }, []);
+
+  const handleBPMOffsetChange = useCallback((offset: number) => {
+    setBpmOffset(offset);
+  }, []);
+
+  const handleBPMOffsetRelease = useCallback(() => {
+    setBpmOffset(0);
     setRestartTrigger(prev => prev + 1);
   }, []);
 
@@ -191,8 +208,8 @@ export default function Home() {
         <h1 className="font-display text-5xl text-brown mb-3 tracking-wide">
           Sample Analyzer
         </h1>
-        <p className="text-lg text-brown/60 mb-10">
-          Drop an audio file to detect key & BPM
+        <p className="text-lg text-brown/60 mb-10 max-w-md truncate text-center">
+          {fileName || "Drop an audio file to detect key & BPM"}
         </p>
       </div>
 
@@ -267,15 +284,16 @@ export default function Home() {
 
         {status === "done" && result && (
           <div className="w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="text-base text-brown/50 text-center mb-6 truncate">{fileName}</div>
-
-            <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="flex items-center justify-center gap-2 mb-6">
               <BPMRadar
                 bpm={result.bpm}
                 confidence={result.bpmConfidence}
                 alternatives={result.bpmAlternatives}
                 selectedBPM={selectedBPM ?? result.bpm}
                 onBPMSelect={handleBPMSelect}
+                onVolumeChange={handleVolumeChange}
+                onBPMOffsetChange={handleBPMOffsetChange}
+                onBPMOffsetRelease={handleBPMOffsetRelease}
               />
               <KeyRadar candidates={result.keyCandidates} stopTrigger={stopTrigger} />
             </div>
@@ -283,7 +301,8 @@ export default function Home() {
             {audioFile && (
               <AudioPlayer
                 file={audioFile}
-                bpm={selectedBPM ?? result.bpm}
+                bpm={(selectedBPM ?? result.bpm) + bpmOffset}
+                volume={volume}
                 onPlayingChange={setIsPlaying}
                 onStop={handleStop}
                 restartTrigger={restartTrigger}

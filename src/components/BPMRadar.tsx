@@ -68,7 +68,6 @@ export function BPMRadar({
   }, [onBPMOffsetChange]);
 
   const handleBpmOffsetRelease = useCallback(() => {
-    setBpmOffset(0);
     onBPMOffsetRelease?.();
   }, [onBPMOffsetRelease]);
 

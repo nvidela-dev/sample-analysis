@@ -100,31 +100,28 @@ function ConfidenceBar({ confidence }: { confidence: number }) {
 }
 
 function KeyDisplay({ candidates }: { candidates: KeyCandidate[] }) {
-  const top = candidates[0];
-  const others = candidates.slice(1, 4);
+  const top5 = candidates.slice(0, 5);
 
   return (
     <div className="text-center">
-      <div className="font-display text-6xl text-forest mb-1 tracking-wide">
-        {top.key}
+      <div className="font-display text-4xl text-forest mb-3 tracking-wide">
+        {top5[0].key} <span className="text-2xl text-olive">{top5[0].mode}</span>
       </div>
-      <div className="text-2xl text-olive mb-4">{top.mode}</div>
-      <div className="mb-4">
-        <ConfidenceBar confidence={top.confidence} />
-      </div>
-      {others.length > 0 && (
-        <div className="text-sm text-brown/60">
-          <span className="text-brown/40">also: </span>
-          {others.map((c, i) => (
-            <span key={`${c.key}-${c.mode}`}>
-              {i > 0 && ", "}
-              <span className="text-brown/70">
-                {c.key} {c.mode}
-              </span>
+      <div className="space-y-1.5">
+        {top5.map((c, i) => (
+          <div key={`${c.key}-${c.mode}`} className="flex items-center gap-2">
+            <span className={`text-xs w-16 text-right ${i === 0 ? "text-forest font-medium" : "text-brown/60"}`}>
+              {c.key} {c.mode}
             </span>
-          ))}
-        </div>
-      )}
+            <div className="flex-1 h-1.5 bg-brown/10 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${i === 0 ? "bg-forest" : "bg-olive/50"}`}
+                style={{ width: `${c.confidence * 100}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

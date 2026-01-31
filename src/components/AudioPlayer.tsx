@@ -1,34 +1,16 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { KeyCandidate } from "@/lib/audio-analyzer";
 
 interface AudioPlayerProps {
   file: File;
   bpm: number;
-  keyCandidates: KeyCandidate[];
   onPlayingChange?: (isPlaying: boolean) => void;
 }
 
-const NOTE_FREQUENCIES: Record<string, number> = {
-  "C": 261.63,
-  "C#": 277.18,
-  "D": 293.66,
-  "D#": 311.13,
-  "E": 329.63,
-  "F": 349.23,
-  "F#": 369.99,
-  "G": 392.00,
-  "G#": 415.30,
-  "A": 440.00,
-  "A#": 466.16,
-  "B": 493.88,
-};
-
-export function AudioPlayer({ file, bpm, keyCandidates, onPlayingChange }: AudioPlayerProps) {
+export function AudioPlayer({ file, bpm, onPlayingChange }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [metronomeOn, setMetronomeOn] = useState(false);
-  const [activeNotes, setActiveNotes] = useState<Set<string>>(new Set());
   const [progress, setProgress] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -37,7 +19,6 @@ export function AudioPlayer({ file, bpm, keyCandidates, onPlayingChange }: Audio
   const sourceRef = useRef<AudioBufferSourceNode | null>(null);
   const gainRef = useRef<GainNode | null>(null);
   const metronomeIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const oscillatorsRef = useRef<Map<string, { osc: OscillatorNode; gain: GainNode }>>(new Map());
   const startTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | null>(null);
 
@@ -65,7 +46,6 @@ export function AudioPlayer({ file, bpm, keyCandidates, onPlayingChange }: Audio
     return () => {
       if (metronomeIntervalRef.current) clearInterval(metronomeIntervalRef.current);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-      oscillatorsRef.current.forEach(({ osc }) => { try { osc.stop(); } catch {} });
       if (audioContextRef.current) audioContextRef.current.close();
     };
   }, [file]);
@@ -229,59 +209,6 @@ export function AudioPlayer({ file, bpm, keyCandidates, onPlayingChange }: Audio
     }
   }, [metronomeOn, bpm, playClick]);
 
-  const toggleNote = useCallback((key: string, mode: "major" | "minor") => {
-    const noteId = `${key}-${mode}`;
-
-    if (activeNotes.has(noteId)) {
-      const existing = oscillatorsRef.current.get(noteId);
-      if (existing) {
-        existing.gain.gain.exponentialRampToValueAtTime(0.001, audioContextRef.current!.currentTime + 0.1);
-        setTimeout(() => {
-          try { existing.osc.stop(); } catch {}
-          oscillatorsRef.current.delete(noteId);
-        }, 100);
-      }
-      setActiveNotes(prev => {
-        const next = new Set(prev);
-        next.delete(noteId);
-        return next;
-      });
-    } else {
-      if (!audioContextRef.current) return;
-
-      if (audioContextRef.current.state === "suspended") {
-        audioContextRef.current.resume();
-      }
-
-      const ctx = audioContextRef.current;
-      const baseFreq = NOTE_FREQUENCIES[key];
-
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = "triangle";
-      osc.frequency.value = baseFreq;
-      gain.gain.setValueAtTime(0, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.05);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-
-      oscillatorsRef.current.set(noteId, { osc, gain });
-      setActiveNotes(prev => new Set(prev).add(noteId));
-    }
-  }, [activeNotes]);
-
-  const topCandidates = keyCandidates.slice(0, 4);
-
-  const toneColors = [
-    { bg: "bg-orange/20", border: "border-orange", text: "text-orange", hoverBorder: "hover:border-orange" },
-    { bg: "bg-olive/20", border: "border-olive", text: "text-olive", hoverBorder: "hover:border-olive" },
-    { bg: "bg-forest/20", border: "border-forest", text: "text-forest", hoverBorder: "hover:border-forest" },
-    { bg: "bg-tan/40", border: "border-tan", text: "text-brown", hoverBorder: "hover:border-tan" },
-  ];
-
   return (
     <div className="w-full mt-6">
       {/* Waveform with play/metronome buttons */}
@@ -354,29 +281,6 @@ export function AudioPlayer({ file, bpm, keyCandidates, onPlayingChange }: Audio
         </div>
       </div>
 
-      {/* Tone buttons */}
-      <div className="flex flex-wrap gap-2 justify-center items-center">
-        {topCandidates.map((candidate, index) => {
-          const noteId = `${candidate.key}-${candidate.mode}`;
-          const isActive = activeNotes.has(noteId);
-          const color = toneColors[index % toneColors.length];
-
-          return (
-            <button
-              key={noteId}
-              onClick={() => toggleNote(candidate.key, candidate.mode)}
-              className={`
-                py-1.5 px-3 rounded-full border-2 transition-all text-xs font-medium
-                ${isActive
-                  ? `${color.bg} ${color.border} ${color.text} shadow-md`
-                  : `bg-cream/50 border-brown/20 text-brown/70 ${color.hoverBorder} hover:${color.text}`}
-              `}
-            >
-              {candidate.key} {candidate.mode}
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 }

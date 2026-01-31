@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { analyzeAudio, AnalysisResult, KeyCandidate } from "@/lib/audio-analyzer";
+import { analyzeAudio, AnalysisResult } from "@/lib/audio-analyzer";
 import { VinylScratcher } from "@/components/VinylScratcher";
 import { AudioPlayer } from "@/components/AudioPlayer";
+import { KeyRadar } from "@/components/KeyRadar";
 
 type Status = "idle" | "analyzing" | "done" | "error";
 
@@ -99,32 +100,6 @@ function ConfidenceBar({ confidence }: { confidence: number }) {
   );
 }
 
-function KeyDisplay({ candidates }: { candidates: KeyCandidate[] }) {
-  const top5 = candidates.slice(0, 5);
-
-  return (
-    <div className="text-center">
-      <div className="font-display text-4xl text-forest mb-3 tracking-wide">
-        {top5[0].key} <span className="text-2xl text-olive">{top5[0].mode}</span>
-      </div>
-      <div className="space-y-1.5">
-        {top5.map((c, i) => (
-          <div key={`${c.key}-${c.mode}`} className="flex items-center gap-2">
-            <span className={`text-xs w-16 text-right ${i === 0 ? "text-forest font-medium" : "text-brown/60"}`}>
-              {c.key} {c.mode}
-            </span>
-            <div className="flex-1 h-1.5 bg-brown/10 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${i === 0 ? "bg-forest" : "bg-olive/50"}`}
-                style={{ width: `${c.confidence * 100}%` }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function BPMDisplay({
   bpm,
@@ -318,22 +293,21 @@ export default function Home() {
 
         {status === "done" && result && (
           <div className="w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="text-base text-brown/50 text-center mb-8 truncate">{fileName}</div>
+            <div className="text-base text-brown/50 text-center mb-6 truncate">{fileName}</div>
 
-            <div className="grid grid-cols-2 gap-12 mb-6">
+            <div className="flex items-center justify-center gap-8 mb-6">
               <BPMDisplay
                 bpm={result.bpm}
                 confidence={result.bpmConfidence}
                 alternatives={result.bpmAlternatives}
               />
-              <KeyDisplay candidates={result.keyCandidates} />
+              <KeyRadar candidates={result.keyCandidates} />
             </div>
 
             {audioFile && (
               <AudioPlayer
                 file={audioFile}
                 bpm={result.bpm}
-                keyCandidates={result.keyCandidates}
                 onPlayingChange={setIsPlaying}
               />
             )}

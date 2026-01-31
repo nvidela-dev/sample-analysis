@@ -262,7 +262,7 @@ export default function Home() {
           className={`
             w-full rounded-2xl border-3 border-dashed px-8 pt-8 pb-2
             flex flex-col items-center justify-center gap-4 transition-all cursor-pointer
-            bg-cream/80 backdrop-blur-sm z-10 relative overflow-hidden
+            bg-cream/80 backdrop-blur-sm z-10 relative overflow-auto
             ${status === "done" ? "min-h-0 resize min-w-[300px]" : "min-h-72"}
             ${isDragging
               ? "border-olive bg-olive/10 scale-[1.02]"
@@ -311,11 +311,8 @@ export default function Home() {
 
         {status === "done" && result && (
           <div
-            className="w-full origin-top transition-transform duration-200"
-            style={{
-              transform: `scale(${contentScale})`,
-              transitionTimingFunction: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)'
-            }}
+            className="w-full"
+            style={{ zoom: contentScale }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-center gap-2 mb-6">

@@ -231,51 +231,54 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center pb-[20vh] p-8 relative overflow-hidden">
+    <main className="min-h-screen flex flex-col items-center pt-16 pb-24 p-8 relative overflow-hidden">
       {/* Decorative leaves */}
       <LeafDecoration className="absolute -top-8 -right-8 w-72 h-96 text-olive rotate-[25deg] opacity-50" />
       <LeafDecoration className="absolute -bottom-12 -left-8 w-64 h-88 text-forest rotate-[-160deg] opacity-40" />
 
-      {/* Content wrapper */}
-      <div className="flex flex-col items-center relative">
+      {/* Fixed header section */}
+      <div className="flex flex-col items-center relative z-10">
+        {/* Interactive vinyl scratcher logo */}
+        <VinylScratcher isSpinning={isPlaying} />
 
-      {/* Collage images - offset in opposite directions */}
-      <img
-        src="/mpc.jpg"
-        alt=""
-        className="absolute -left-64 top-[55%] w-[1400px] opacity-20 -rotate-6 pointer-events-none z-0"
-      />
-      <img
-        src="/piano.jpg"
-        alt=""
-        className="absolute -right-64 top-[40%] w-[1400px] opacity-20 rotate-3 pointer-events-none z-0"
-      />
+        {/* Title */}
+        <h1 className="font-display text-5xl text-brown mb-3 tracking-wide">
+          Sample Analyzer
+        </h1>
+        <p className="text-lg text-brown/60 mb-10">
+          Drop an audio file to detect key & BPM
+        </p>
+      </div>
 
-      {/* Interactive vinyl scratcher logo */}
-      <VinylScratcher isSpinning={isPlaying} />
+      {/* Drop Zone wrapper - fixed height container */}
+      <div className="relative w-full max-w-xl">
+        {/* Collage images - positioned relative to drop zone */}
+        <img
+          src="/mpc.jpg"
+          alt=""
+          className="absolute -left-96 top-0 w-[1400px] opacity-20 -rotate-6 pointer-events-none z-0"
+        />
+        <img
+          src="/piano.jpg"
+          alt=""
+          className="absolute -right-96 -top-20 w-[1400px] opacity-20 rotate-3 pointer-events-none z-0"
+        />
 
-      {/* Title */}
-      <h1 className="font-display text-5xl text-brown mb-3 tracking-wide z-10">
-        Sample Analyzer
-      </h1>
-      <p className="text-lg text-brown/60 mb-10 z-10">
-        Drop an audio file to detect key & BPM
-      </p>
-
-      {/* Drop Zone */}
-      <div
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        className={`
-          w-full max-w-xl min-h-72 rounded-2xl border-3 border-dashed p-8
-          flex flex-col items-center justify-center gap-4 transition-all cursor-pointer
-          bg-cream/80 backdrop-blur-sm z-10
-          ${isDragging
-            ? "border-olive bg-olive/10 scale-[1.02]"
-            : "border-tan hover:border-olive hover:bg-cream"}
-          ${status === "analyzing" ? "pointer-events-none" : ""}
-        `}
+        {/* Drop Zone */}
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          className={`
+            w-full rounded-2xl border-3 border-dashed p-8
+            flex flex-col items-center justify-center gap-4 transition-all cursor-pointer
+            bg-cream/80 backdrop-blur-sm z-10 relative
+            ${status === "done" ? "min-h-0" : "min-h-72"}
+            ${isDragging
+              ? "border-olive bg-olive/10 scale-[1.02]"
+              : "border-tan hover:border-olive hover:bg-cream"}
+            ${status === "analyzing" ? "pointer-events-none" : ""}
+          `}
         onClick={() => {
           if (status !== "analyzing") {
             document.getElementById("file-input")?.click();
@@ -362,8 +365,7 @@ export default function Home() {
           </div>
         )}
       </div>
-
-      </div>{/* End content wrapper */}
+      </div>{/* End drop zone wrapper */}
 
       {/* Footer */}
       <div className="absolute bottom-0 left-0 right-0 h-12 bg-brown flex items-center justify-end px-6">

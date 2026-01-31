@@ -273,28 +273,31 @@ export function AudioPlayer({ file, bpm, volume = 1, onPlayingChange, onStop, re
             )}
           </button>
 
-          {/* Metronome button */}
-          <button
-            onClick={toggleMetronome}
-            className={`
-              w-11 h-11 rounded-full border-2 flex items-center justify-center
-              transition-all duration-150
-              ${metronomeOn
-                ? "bg-olive/20 border-olive text-forest"
-                : "bg-cream/50 border-tan text-brown hover:border-olive hover:bg-cream hover:text-forest"}
-            `}
-            style={metronomeOn ? {
-              animation: `metronome-pulse ${60 / bpm}s ease-in-out infinite`,
-            } : undefined}
-            title={`Metronome (${bpm} BPM)`}
-          >
-            {/* Metronome icon */}
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2L8 10h8l-4-8z" />
-              <path d="M8 10l-2 10h12l-2-10H8z" />
-              <rect x="11" y="6" width="2" height="8" rx="0.5" transform="rotate(-15 12 10)" />
-            </svg>
-          </button>
+          {/* Metronome button with BPM label */}
+          <div className="flex flex-col items-center">
+            <button
+              onClick={toggleMetronome}
+              className={`
+                w-11 h-11 rounded-full border-2 flex items-center justify-center
+                transition-all duration-150
+                ${metronomeOn
+                  ? "bg-olive/20 border-olive text-forest"
+                  : "bg-cream/50 border-tan text-brown hover:border-olive hover:bg-cream hover:text-forest"}
+              `}
+              style={metronomeOn ? {
+                animation: `metronome-pulse ${60 / bpm}s ease-in-out infinite`,
+              } : undefined}
+              title={`Metronome (${bpm} BPM)`}
+            >
+              {/* Metronome icon */}
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L8 10h8l-4-8z" />
+                <path d="M8 10l-2 10h12l-2-10H8z" />
+                <rect x="11" y="6" width="2" height="8" rx="0.5" transform="rotate(-15 12 10)" />
+              </svg>
+            </button>
+            <span className="text-[10px] text-brown/50 mt-1">{bpm} BPM</span>
+          </div>
         </div>
 
         {/* Waveform */}

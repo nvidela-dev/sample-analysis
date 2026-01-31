@@ -240,7 +240,7 @@ export default function Home() {
       </div>
 
       {/* Drop Zone wrapper - fixed height container */}
-      <div className="relative w-full max-w-xl">
+      <div className="relative w-full max-w-xl flex flex-col items-center">
         {/* Collage images - positioned relative to drop zone */}
         <img
           src="/mpc.jpg"
@@ -311,8 +311,11 @@ export default function Home() {
 
         {status === "done" && result && (
           <div
-            className="w-full origin-top"
-            style={{ transform: `scale(${contentScale})` }}
+            className="w-full origin-top transition-transform duration-200"
+            style={{
+              transform: `scale(${contentScale})`,
+              transitionTimingFunction: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-center gap-2 mb-6">

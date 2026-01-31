@@ -218,7 +218,11 @@ export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
             const isActive = activeNote === noteId;
 
             return (
-              <g key={i} className="cursor-pointer" onClick={() => toggleNote(p.candidate.key, p.candidate.mode)}>
+              <g
+                key={i}
+                className="cursor-pointer group"
+                onClick={() => toggleNote(p.candidate.key, p.candidate.mode)}
+              >
                 <circle cx={p.x} cy={p.y} r={14} fill="transparent" />
                 <circle
                   cx={p.x}
@@ -227,19 +231,9 @@ export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
                   fill={isActive ? "#DDA15E" : "#606C38"}
                   stroke={isActive ? "#BC6C25" : "#283618"}
                   strokeWidth="2"
-                  className="transition-all duration-150"
+                  className="transition-all duration-150 group-hover:scale-150 group-hover:drop-shadow-lg"
+                  style={{ transformOrigin: `${p.x}px ${p.y}px` }}
                 />
-                {isActive && (
-                  <circle
-                    cx={p.x}
-                    cy={p.y}
-                    r={10}
-                    fill="none"
-                    stroke="#DDA15E"
-                    strokeWidth="2"
-                    className="animate-ping opacity-75"
-                  />
-                )}
               </g>
             );
           })}

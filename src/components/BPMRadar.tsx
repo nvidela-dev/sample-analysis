@@ -194,7 +194,11 @@ export function BPMRadar({
             const isMain = p.item.isMain;
 
             return (
-              <g key={i} className="cursor-pointer" onClick={() => onBPMSelect?.(p.item.value)}>
+              <g
+                key={i}
+                className="cursor-pointer group"
+                onClick={() => onBPMSelect?.(p.item.value)}
+              >
                 <circle cx={p.x} cy={p.y} r={14} fill="transparent" />
                 <circle
                   cx={p.x}
@@ -203,19 +207,9 @@ export function BPMRadar({
                   fill={isActive ? "#DDA15E" : "#BC6C25"}
                   stroke={isMain ? "#DDA15E" : "#8B5A2B"}
                   strokeWidth="2"
-                  className="transition-all duration-150"
+                  className="transition-all duration-150 group-hover:scale-150 group-hover:drop-shadow-lg"
+                  style={{ transformOrigin: `${p.x}px ${p.y}px` }}
                 />
-                {isActive && (
-                  <circle
-                    cx={p.x}
-                    cy={p.y}
-                    r={10}
-                    fill="none"
-                    stroke="#DDA15E"
-                    strokeWidth="2"
-                    className="animate-ping opacity-75"
-                  />
-                )}
               </g>
             );
           })}

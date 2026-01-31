@@ -283,6 +283,9 @@ export function AudioPlayer({ file, bpm, volume = 1, onPlayingChange, onStop, re
                 ? "bg-olive/20 border-olive text-forest"
                 : "bg-cream/50 border-tan text-brown hover:border-olive hover:bg-cream hover:text-forest"}
             `}
+            style={metronomeOn ? {
+              animation: `metronome-pulse ${60 / bpm}s ease-in-out infinite`,
+            } : undefined}
             title={`Metronome (${bpm} BPM)`}
           >
             {/* Metronome icon */}

@@ -6,9 +6,10 @@ interface AudioPlayerProps {
   file: File;
   bpm: number;
   onPlayingChange?: (isPlaying: boolean) => void;
+  restartTrigger?: number; // Increment to restart with metronome
 }
 
-export function AudioPlayer({ file, bpm, onPlayingChange }: AudioPlayerProps) {
+export function AudioPlayer({ file, bpm, onPlayingChange, restartTrigger }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [metronomeOn, setMetronomeOn] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -174,6 +175,39 @@ export function AudioPlayer({ file, bpm, onPlayingChange }: AudioPlayerProps) {
     osc.stop(ctx.currentTime + 0.05);
   }, []);
 
+  const startWithMetronome = useCallback((tempo: number) => {
+    if (audioContextRef.current?.state === "suspended") {
+      audioContextRef.current.resume();
+    }
+
+    // Stop current metronome if running
+    if (metronomeIntervalRef.current) {
+      clearInterval(metronomeIntervalRef.current);
+      metronomeIntervalRef.current = null;
+    }
+
+    // Restart the sample to sync with metronome
+    if (sourceRef.current) {
+      try { sourceRef.current.stop(); } catch {}
+    }
+
+    if (audioBufferRef.current && gainRef.current && audioContextRef.current) {
+      const source = audioContextRef.current.createBufferSource();
+      source.buffer = audioBufferRef.current;
+      source.loop = true;
+      source.connect(gainRef.current);
+      source.start();
+      startTimeRef.current = audioContextRef.current.currentTime;
+      sourceRef.current = source;
+      setIsPlaying(true);
+    }
+
+    const intervalMs = (60 / tempo) * 1000;
+    playClick();
+    metronomeIntervalRef.current = setInterval(playClick, intervalMs);
+    setMetronomeOn(true);
+  }, [playClick]);
+
   const toggleMetronome = useCallback(() => {
     if (metronomeOn) {
       if (metronomeIntervalRef.current) {
@@ -182,32 +216,16 @@ export function AudioPlayer({ file, bpm, onPlayingChange }: AudioPlayerProps) {
       }
       setMetronomeOn(false);
     } else {
-      if (audioContextRef.current?.state === "suspended") {
-        audioContextRef.current.resume();
-      }
-
-      // Restart the sample to sync with metronome
-      if (sourceRef.current) {
-        try { sourceRef.current.stop(); } catch {}
-      }
-
-      if (audioBufferRef.current && gainRef.current && audioContextRef.current) {
-        const source = audioContextRef.current.createBufferSource();
-        source.buffer = audioBufferRef.current;
-        source.loop = true;
-        source.connect(gainRef.current);
-        source.start();
-        startTimeRef.current = audioContextRef.current.currentTime;
-        sourceRef.current = source;
-        setIsPlaying(true);
-      }
-
-      const intervalMs = (60 / bpm) * 1000;
-      playClick();
-      metronomeIntervalRef.current = setInterval(playClick, intervalMs);
-      setMetronomeOn(true);
+      startWithMetronome(bpm);
     }
-  }, [metronomeOn, bpm, playClick]);
+  }, [metronomeOn, bpm, startWithMetronome]);
+
+  // Restart with metronome when triggered from BPM selection
+  useEffect(() => {
+    if (restartTrigger && restartTrigger > 0) {
+      startWithMetronome(bpm);
+    }
+  }, [restartTrigger, bpm, startWithMetronome]);
 
   return (
     <div className="w-full mt-6">

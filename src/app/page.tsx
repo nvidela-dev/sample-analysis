@@ -100,6 +100,7 @@ export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedBPM, setSelectedBPM] = useState<number | null>(null);
+  const [restartTrigger, setRestartTrigger] = useState(0);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("audio/")) {
@@ -161,6 +162,12 @@ export default function Home() {
     setAudioFile(null);
     setIsPlaying(false);
     setSelectedBPM(null);
+    setRestartTrigger(0);
+  }, []);
+
+  const handleBPMSelect = useCallback((bpm: number) => {
+    setSelectedBPM(bpm);
+    setRestartTrigger(prev => prev + 1);
   }, []);
 
   return (
@@ -262,7 +269,7 @@ export default function Home() {
                 confidence={result.bpmConfidence}
                 alternatives={result.bpmAlternatives}
                 selectedBPM={selectedBPM ?? result.bpm}
-                onBPMSelect={setSelectedBPM}
+                onBPMSelect={handleBPMSelect}
               />
               <KeyRadar candidates={result.keyCandidates} />
             </div>
@@ -272,6 +279,7 @@ export default function Home() {
                 file={audioFile}
                 bpm={selectedBPM ?? result.bpm}
                 onPlayingChange={setIsPlaying}
+                restartTrigger={restartTrigger}
               />
             )}
 

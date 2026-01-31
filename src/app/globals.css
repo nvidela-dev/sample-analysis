@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #F5F0E1;
+  --color-tan: #C4A77D;
+  --color-olive: #6B7B3C;
+  --color-orange: #C45C26;
+  --color-brown: #3D2B1F;
+  --color-forest: #2D4A2D;
+  --color-paper: #EBE5D5;
+}
+
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-brown);
+  position: relative;
+}
+
+/* Paper grain texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.font-display {
+  font-family: 'Sedgwick Ave Display', cursive;
+}
+

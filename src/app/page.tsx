@@ -213,7 +213,7 @@ export default function Home() {
         <h1 className="font-display text-5xl text-brown mb-3 tracking-wide">
           Sample Analyzer
         </h1>
-        <p className="text-lg text-brown/60 mb-10 max-w-md truncate text-center">
+        <p className="text-lg text-brown/60 mb-3 max-w-md truncate text-center">
           {fileName || "Drop an audio file to detect key & BPM"}
         </p>
       </div>

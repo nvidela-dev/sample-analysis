@@ -241,8 +241,8 @@ export default function Home() {
           className={`
             w-full rounded-2xl border-3 border-dashed px-8 pt-8 pb-2
             flex flex-col items-center justify-center gap-4 transition-all cursor-pointer
-            bg-cream/80 backdrop-blur-sm z-10 relative
-            ${status === "done" ? "min-h-0" : "min-h-72"}
+            bg-cream/80 backdrop-blur-sm z-10 relative overflow-auto
+            ${status === "done" ? "min-h-0 resize-y" : "min-h-72"}
             ${isDragging
               ? "border-olive bg-olive/10 scale-[1.02]"
               : "border-tan hover:border-olive hover:bg-cream"}

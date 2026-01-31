@@ -183,9 +183,10 @@ export function KeyRadar({ candidates, stopTrigger, useFlats = false, onToggleNo
 
   return (
     <div className="flex flex-col items-center">
-      <div className="flex items-center gap-2">
-        {/* Radar */}
-        <svg width={size} height={size} className="overflow-visible">
+      <div className="flex items-start gap-2">
+        {/* Radar with toggle below */}
+        <div className="flex flex-col items-center">
+          <svg width={size} height={size} className="overflow-visible">
           {gridLevels.map((level, i) => (
             <polygon
               key={i}
@@ -284,6 +285,15 @@ export function KeyRadar({ candidates, stopTrigger, useFlats = false, onToggleNo
           })}
         </svg>
 
+          {/* Sharp/Flat toggle */}
+          <button
+            onClick={onToggleNotation}
+            className="mt-2 px-2 py-0.5 text-[10px] text-brown/60 hover:text-forest border border-brown/20 hover:border-forest rounded transition-colors"
+          >
+            {useFlats ? "♭ → ♯" : "♯ → ♭"}
+          </button>
+        </div>
+
         {/* Volume slider (inner right) */}
         <div className="flex flex-col items-center h-[180px]">
           <span className="text-[10px] text-brown/50 mb-1">Vol</span>
@@ -314,14 +324,6 @@ export function KeyRadar({ candidates, stopTrigger, useFlats = false, onToggleNo
           <span className="text-[10px] text-forest/80 mt-1">{detune > 0 ? `+${detune}` : detune}¢</span>
         </div>
       </div>
-
-      {/* Sharp/Flat toggle */}
-      <button
-        onClick={onToggleNotation}
-        className="mt-2 px-2 py-0.5 text-[10px] text-brown/60 hover:text-forest border border-brown/20 hover:border-forest rounded transition-colors"
-      >
-        {useFlats ? "♭ → ♯" : "♯ → ♭"}
-      </button>
     </div>
   );
 }

@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   keywords: ["sample analyzer", "key detection", "BPM detection", "music production", "audio analysis", "tempo finder", "key finder", "DJ tools"],
   authors: [{ name: "nvidela", url: "https://nvidela.dev" }],
   creator: "nvidela",
-  metadataBase: new URL("https://sample-analysis.vercel.app"),
+  metadataBase: new URL("https://sample-analysis.nvidela.dev"),
   openGraph: {
     title: "Sample Analyzer | Detect Key & BPM",
     description: "Drop an audio sample to instantly detect its musical key and BPM. Interactive radar charts, metronome sync, and tone playback.",
-    url: "https://sample-analysis.vercel.app",
+    url: "https://sample-analysis.nvidela.dev",
     siteName: "Sample Analyzer",
     locale: "en_US",
     type: "website",

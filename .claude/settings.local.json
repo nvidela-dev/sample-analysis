@@ -12,7 +12,9 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(curl -I https://sample-analysis.vercel.app/og-image.png)",
+      "Bash(curl:*)"
     ]
   }
 }

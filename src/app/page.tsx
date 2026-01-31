@@ -116,7 +116,7 @@ export default function Home() {
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const newWidth = entry.contentRect.width;
-        const scale = Math.max(0.5, newWidth / baseWidth);
+        const scale = Math.max(1, newWidth / baseWidth);
         setContentScale(scale);
       }
     });
@@ -263,7 +263,7 @@ export default function Home() {
             w-full rounded-2xl border-3 border-dashed px-8 pt-8 pb-2
             flex flex-col items-center justify-center gap-4 transition-all cursor-pointer
             bg-cream/80 backdrop-blur-sm z-10 relative overflow-auto
-            ${status === "done" ? "min-h-0 resize min-w-[300px]" : "min-h-72"}
+            ${status === "done" ? "min-h-0 resize min-w-[576px]" : "min-h-72"}
             ${isDragging
               ? "border-olive bg-olive/10 scale-[1.02]"
               : "border-tan hover:border-olive hover:bg-cream"}

@@ -107,10 +107,6 @@ export function BPMRadar({
 
   return (
     <div className="flex flex-col items-center">
-      <div className="text-xs text-brown/50 text-center mb-2">
-        Click to set metronome
-      </div>
-
       <div className="flex items-center gap-2">
         {/* BPM Offset slider (outer left) */}
         <div className="flex flex-col items-center h-[180px]">

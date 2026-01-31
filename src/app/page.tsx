@@ -104,6 +104,7 @@ export default function Home() {
   const [stopTrigger, setStopTrigger] = useState(0);
   const [volume, setVolume] = useState(1);
   const [bpmOffset, setBpmOffset] = useState(0);
+  const [useFlats, setUseFlats] = useState(false);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("audio/")) {
@@ -169,6 +170,7 @@ export default function Home() {
     setStopTrigger(0);
     setVolume(1);
     setBpmOffset(0);
+    setUseFlats(false);
   }, []);
 
   const handleStop = useCallback(() => {
@@ -191,6 +193,10 @@ export default function Home() {
   const handleBPMOffsetRelease = useCallback(() => {
     // Restart with metronome at the current tempo (keeps offset)
     setRestartTrigger(prev => prev + 1);
+  }, []);
+
+  const toggleNotation = useCallback(() => {
+    setUseFlats(prev => !prev);
   }, []);
 
   return (
@@ -295,7 +301,12 @@ export default function Home() {
                 onBPMOffsetChange={handleBPMOffsetChange}
                 onBPMOffsetRelease={handleBPMOffsetRelease}
               />
-              <KeyRadar candidates={result.keyCandidates} stopTrigger={stopTrigger} />
+              <KeyRadar
+                candidates={result.keyCandidates}
+                stopTrigger={stopTrigger}
+                useFlats={useFlats}
+                onToggleNotation={toggleNotation}
+              />
             </div>
 
             {audioFile && (

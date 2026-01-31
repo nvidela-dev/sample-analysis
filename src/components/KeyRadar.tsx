@@ -6,7 +6,17 @@ import { KeyCandidate } from "@/lib/audio-analyzer";
 interface KeyRadarProps {
   candidates: KeyCandidate[];
   stopTrigger?: number;
+  useFlats?: boolean;
+  onToggleNotation?: () => void;
 }
+
+const SHARP_TO_FLAT: Record<string, string> = {
+  "C#": "Db",
+  "D#": "Eb",
+  "F#": "Gb",
+  "G#": "Ab",
+  "A#": "Bb",
+};
 
 const NOTE_FREQUENCIES: Record<string, number> = {
   "C": 261.63,
@@ -23,7 +33,13 @@ const NOTE_FREQUENCIES: Record<string, number> = {
   "B": 493.88,
 };
 
-export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
+export function KeyRadar({ candidates, stopTrigger, useFlats = false, onToggleNotation }: KeyRadarProps) {
+  const formatKey = (key: string) => {
+    if (useFlats && SHARP_TO_FLAT[key]) {
+      return SHARP_TO_FLAT[key];
+    }
+    return key;
+  };
   const top6 = candidates.slice(0, 6);
   const [activeNote, setActiveNote] = useState<string | null>(null);
   const [volume, setVolume] = useState(100);
@@ -167,10 +183,6 @@ export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="text-xs text-brown/50 text-center mb-2">
-        Click a key to hear its tone
-      </div>
-
       <div className="flex items-center gap-2">
         {/* Radar */}
         <svg width={size} height={size} className="overflow-visible">
@@ -254,7 +266,7 @@ export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
                     isActive ? "fill-orange" : isTop ? "fill-forest" : "fill-brown/70"
                   }`}
                 >
-                  {p.candidate.key}
+                  {formatKey(p.candidate.key)}
                 </text>
                 <text
                   x={p.labelX}
@@ -302,6 +314,14 @@ export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
           <span className="text-[10px] text-forest/80 mt-1">{detune > 0 ? `+${detune}` : detune}¢</span>
         </div>
       </div>
+
+      {/* Sharp/Flat toggle */}
+      <button
+        onClick={onToggleNotation}
+        className="mt-2 px-2 py-0.5 text-[10px] text-brown/60 hover:text-forest border border-brown/20 hover:border-forest rounded transition-colors"
+      >
+        {useFlats ? "♭ → ♯" : "♯ → ♭"}
+      </button>
     </div>
   );
 }

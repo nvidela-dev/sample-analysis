@@ -6,10 +6,11 @@ interface AudioPlayerProps {
   file: File;
   bpm: number;
   onPlayingChange?: (isPlaying: boolean) => void;
+  onStop?: () => void;
   restartTrigger?: number; // Increment to restart with metronome
 }
 
-export function AudioPlayer({ file, bpm, onPlayingChange, restartTrigger }: AudioPlayerProps) {
+export function AudioPlayer({ file, bpm, onPlayingChange, onStop, restartTrigger }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [metronomeOn, setMetronomeOn] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -141,13 +142,21 @@ export function AudioPlayer({ file, bpm, onPlayingChange, restartTrigger }: Audi
   }, []);
 
   const stopSample = useCallback(() => {
+    // Stop the audio source
     if (sourceRef.current) {
       try { sourceRef.current.stop(); } catch {}
       sourceRef.current = null;
     }
+    // Stop the metronome
+    if (metronomeIntervalRef.current) {
+      clearInterval(metronomeIntervalRef.current);
+      metronomeIntervalRef.current = null;
+    }
+    setMetronomeOn(false);
     setIsPlaying(false);
     setProgress(0);
-  }, []);
+    onStop?.();
+  }, [onStop]);
 
   const togglePlay = useCallback(() => {
     if (isPlaying) {
@@ -247,8 +256,7 @@ export function AudioPlayer({ file, bpm, onPlayingChange, restartTrigger }: Audi
           >
             {isPlaying ? (
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <rect x="6" y="4" width="4" height="16" rx="1" />
-                <rect x="14" y="4" width="4" height="16" rx="1" />
+                <rect x="6" y="6" width="12" height="12" rx="1" />
               </svg>
             ) : (
               <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24">

@@ -101,6 +101,7 @@ export default function Home() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedBPM, setSelectedBPM] = useState<number | null>(null);
   const [restartTrigger, setRestartTrigger] = useState(0);
+  const [stopTrigger, setStopTrigger] = useState(0);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("audio/")) {
@@ -163,6 +164,11 @@ export default function Home() {
     setIsPlaying(false);
     setSelectedBPM(null);
     setRestartTrigger(0);
+    setStopTrigger(0);
+  }, []);
+
+  const handleStop = useCallback(() => {
+    setStopTrigger(prev => prev + 1);
   }, []);
 
   const handleBPMSelect = useCallback((bpm: number) => {
@@ -271,7 +277,7 @@ export default function Home() {
                 selectedBPM={selectedBPM ?? result.bpm}
                 onBPMSelect={handleBPMSelect}
               />
-              <KeyRadar candidates={result.keyCandidates} />
+              <KeyRadar candidates={result.keyCandidates} stopTrigger={stopTrigger} />
             </div>
 
             {audioFile && (
@@ -279,6 +285,7 @@ export default function Home() {
                 file={audioFile}
                 bpm={selectedBPM ?? result.bpm}
                 onPlayingChange={setIsPlaying}
+                onStop={handleStop}
                 restartTrigger={restartTrigger}
               />
             )}

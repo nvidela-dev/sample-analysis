@@ -5,6 +5,7 @@ import { KeyCandidate } from "@/lib/audio-analyzer";
 
 interface KeyRadarProps {
   candidates: KeyCandidate[];
+  stopTrigger?: number; // Increment to stop all tones
 }
 
 const NOTE_FREQUENCIES: Record<string, number> = {
@@ -22,11 +23,24 @@ const NOTE_FREQUENCIES: Record<string, number> = {
   "B": 493.88,
 };
 
-export function KeyRadar({ candidates }: KeyRadarProps) {
+export function KeyRadar({ candidates, stopTrigger }: KeyRadarProps) {
   const top6 = candidates.slice(0, 6);
   const [activeNote, setActiveNote] = useState<string | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorRef = useRef<{ osc: OscillatorNode; gain: GainNode } | null>(null);
+
+  // Stop all tones when stopTrigger changes
+  useEffect(() => {
+    if (stopTrigger && stopTrigger > 0 && oscillatorRef.current) {
+      const { gain, osc } = oscillatorRef.current;
+      gain.gain.exponentialRampToValueAtTime(0.001, audioContextRef.current!.currentTime + 0.1);
+      setTimeout(() => {
+        try { osc.stop(); } catch {}
+      }, 100);
+      oscillatorRef.current = null;
+      setActiveNote(null);
+    }
+  }, [stopTrigger]);
 
   // Initialize audio context on first interaction
   const getAudioContext = useCallback(() => {

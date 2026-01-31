@@ -5,6 +5,7 @@ import { analyzeAudio, AnalysisResult } from "@/lib/audio-analyzer";
 import { VinylScratcher } from "@/components/VinylScratcher";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { KeyRadar } from "@/components/KeyRadar";
+import { BPMRadar } from "@/components/BPMRadar";
 
 type Status = "idle" | "analyzing" | "done" | "error";
 
@@ -89,48 +90,6 @@ function LeafDecoration({ className }: { className?: string }) {
   );
 }
 
-function ConfidenceBar({ confidence }: { confidence: number }) {
-  return (
-    <div className="w-full h-2.5 bg-tan/30 rounded-full overflow-hidden border border-brown/20">
-      <div
-        className="h-full bg-gradient-to-r from-olive to-forest transition-all duration-300"
-        style={{ width: `${confidence * 100}%` }}
-      />
-    </div>
-  );
-}
-
-
-function BPMDisplay({
-  bpm,
-  confidence,
-  alternatives,
-}: {
-  bpm: number;
-  confidence: number;
-  alternatives: number[];
-}) {
-  return (
-    <div className="text-center">
-      <div className="font-display text-6xl text-orange mb-1 tracking-wide">{bpm}</div>
-      <div className="text-2xl text-tan mb-4">BPM</div>
-      <div className="mb-4">
-        <ConfidenceBar confidence={confidence} />
-      </div>
-      {alternatives.length > 0 && (
-        <div className="text-sm text-brown/60">
-          <span className="text-brown/40">or </span>
-          {alternatives.map((alt, i) => (
-            <span key={alt}>
-              {i > 0 && ", "}
-              <span className="text-brown/70">{alt}</span>
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function Home() {
   const [status, setStatus] = useState<Status>("idle");
@@ -140,6 +99,7 @@ export default function Home() {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [selectedBPM, setSelectedBPM] = useState<number | null>(null);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("audio/")) {
@@ -200,6 +160,7 @@ export default function Home() {
     setFileName(null);
     setAudioFile(null);
     setIsPlaying(false);
+    setSelectedBPM(null);
   }, []);
 
   return (
@@ -295,11 +256,13 @@ export default function Home() {
           <div className="w-full" onClick={(e) => e.stopPropagation()}>
             <div className="text-base text-brown/50 text-center mb-6 truncate">{fileName}</div>
 
-            <div className="flex items-center justify-center gap-8 mb-6">
-              <BPMDisplay
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <BPMRadar
                 bpm={result.bpm}
                 confidence={result.bpmConfidence}
                 alternatives={result.bpmAlternatives}
+                selectedBPM={selectedBPM ?? result.bpm}
+                onBPMSelect={setSelectedBPM}
               />
               <KeyRadar candidates={result.keyCandidates} />
             </div>
@@ -307,7 +270,7 @@ export default function Home() {
             {audioFile && (
               <AudioPlayer
                 file={audioFile}
-                bpm={result.bpm}
+                bpm={selectedBPM ?? result.bpm}
                 onPlayingChange={setIsPlaying}
               />
             )}

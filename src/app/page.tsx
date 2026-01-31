@@ -189,9 +189,14 @@ export default function Home() {
   }, []);
 
   const handleBPMOffsetRelease = useCallback(() => {
+    // Apply the offset to the selected BPM, then reset offset
+    setSelectedBPM(prev => {
+      const baseBPM = prev ?? result?.bpm ?? 120;
+      return baseBPM + bpmOffset;
+    });
     setBpmOffset(0);
     setRestartTrigger(prev => prev + 1);
-  }, []);
+  }, [bpmOffset, result?.bpm]);
 
   return (
     <main className="min-h-screen flex flex-col items-center pt-16 pb-24 p-8 relative overflow-hidden">

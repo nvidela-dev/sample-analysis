@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-image.png",
+        url: "/logo.png",
         width: 1200,
         height: 630,
         alt: "Sample Analyzer - Detect Key & BPM from audio samples",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Sample Analyzer | Detect Key & BPM",
     description: "Drop an audio sample to instantly detect its musical key and BPM. Built for producers and musicians.",
-    images: ["/og-image.png"],
+    images: ["/logo.png"],
   },
   icons: {
     icon: [
